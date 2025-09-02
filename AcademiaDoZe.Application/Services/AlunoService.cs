@@ -1,4 +1,4 @@
-﻿//Iago Henrique Schlemper
+﻿//Helen de Oliveira de Jesus
 using AcademiaDoZe.Application.DTOs;
 using AcademiaDoZe.Application.Interfaces;
 using AcademiaDoZe.Application.Mappings;
@@ -19,51 +19,43 @@ public class AlunoService : IAlunoService
 
     public async Task<AlunoDTO> AdicionarAsync(AlunoDTO alunoDto)
     {
-        // Verifica se já existe um colaborador com o mesmo CPF
         if (await _repoFactory().CpfJaExiste(alunoDto.Cpf))
 
         {
             throw new InvalidOperationException($"Já existe um colaborador cadastrado com o CPF {alunoDto.Cpf}.");
         }
-        // Hash da senha
 
         if (!string.IsNullOrWhiteSpace(alunoDto.Senha))
 
         {
             alunoDto.Senha = PasswordHasher.Hash(alunoDto.Senha);
         }
-        // Cria a entidade de domínio a partir do DTO
+
         var aluno = alunoDto.ToEntity();
-        // Salva no repositório
+
         await _repoFactory().Adicionar(aluno);
-        // Retorna o DTO atualizado com o ID gerado
+
         return aluno.ToDto();
 
     }
     public async Task<AlunoDTO> AtualizarAsync(AlunoDTO alunoDto)
     {
-        // Verifica se o colaborador existe
-
         var alunoExistente = await _repoFactory().ObterPorId(alunoDto.Id) ?? throw new KeyNotFoundException($"Aluno ID {alunoDto.Id} não encontrado.");
-
-        // Verifica se o novo CPF já está em uso por outro colaborador
 
         if (await _repoFactory().CpfJaExiste(alunoDto.Cpf, alunoDto.Id))
 
         {
             throw new InvalidOperationException($"Já existe outro aluno cadastrado com o CPF {alunoDto.Cpf}.");
         }
-        // Se nova senha informada, aplicar hash
 
         if (!string.IsNullOrWhiteSpace(alunoDto.Senha))
 
         {
             alunoDto.Senha = PasswordHasher.Hash(alunoDto.Senha);
         }
-        // a partir dos dados do dto e do existente, cria uma nova instância com os valores atualizados
 
         var alunoAtualizado = alunoExistente.UpdateFromDto(alunoDto);
-        // Atualiza no repositório
+
         await _repoFactory().Atualizar(alunoAtualizado);
         return alunoAtualizado.ToDto();
 
